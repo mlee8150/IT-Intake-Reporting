@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+output/
+config/rolling_history.xlsx
+config/department_mapping.csv
+*.log
+.pytest_cache/
