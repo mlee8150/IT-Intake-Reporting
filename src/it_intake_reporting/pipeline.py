@@ -160,7 +160,7 @@ def _fetch_transition_events(
     events = []
     for message in mailbox_client.iter_messages(settings.outlook_transitions_folder, since=since):
         try:
-            events.append(parse_transition_email(message))
+            events.extend(parse_transition_email(message))
         except ValueError as exc:
             warnings.warn(f"Skipping unparseable email {message.subject!r}: {exc}", stacklevel=2)
     return events
