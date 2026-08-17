@@ -44,7 +44,7 @@ Follow-up"):
 | 2 — Throughput trend | Parent-request (unchanged) | Confirmed — no sub-task source exists for this; stays driven by `parent_events` |
 | 3 — Where time goes / working hours | Sub-task (unchanged) | Already correct |
 | 6 — Aging | Parent-request (unchanged) | Confirmed against the "TI Intake" aging sheet (0-30/31-60/61-90/90+ day buckets, no per-sub-task breakdown) |
-| 7 — Stalled | **Sub-task (changed)** | Confirmed against "Reviews Needing Follow-up" — a flat list of individual review sub-tasks with their own status/last-updated/days-since-update. `panel7_stalled.py` and `pipeline.py` have been rewired: `compute_stalled` now takes the same `latest_subtask_transition` list panel 3 uses (one TransitionEvent per open sub-task, its most recent status change), instead of the parent-level Jira snapshot. |
+| 7 — Stalled | **Sub-task (changed)** | Confirmed against "Reviews Needing Follow-up" — a flat list of individual review sub-tasks with their own status/last-updated/days-since-update. `panel7_stalled.py` and `pipeline.py` have been rewired: `compute_stalled` now takes the same `latest_subtask_transition` list panel 3 uses (one TransitionEvent per open sub-task, its most recent status change), instead of the parent-level Jira snapshot — and counts every open sub-task with no day-count filter (see #6). |
 
 This also resolves #6 below — using each sub-task's transition timestamp
 sidesteps the "bot bumps `updated`" risk entirely, since it's driven by an
@@ -124,10 +124,9 @@ risk this item used to flag. The remaining open piece (transition emails
 outside the fetch window making long-stalled tickets invisible) is tracked
 under #1a, not here.
 
-Still unconfirmed: the exact inclusion/threshold rule behind "Reviews
-Needing Follow-up" isn't fully known — its `Days` column included values
-below the 7-day `STALLED_THRESHOLD_DAYS` cutoff currently used in code (e.g.
-5 days), suggesting that sheet may list *all* open sub-tasks with their age
-rather than only ones past a stalled threshold. If panel 7's tile is meant
-to match that sheet's row count exactly, confirm whether 7 days is really
-the right cutoff.
+Per the report owner, there's no separate day-count threshold at all —
+`compute_stalled` no longer filters by age; it counts every open sub-task
+the pipeline currently knows about, by team, matching whatever the data
+shows (the same shape as the "Reviews Needing Follow-up" sheet, which
+included rows as young as 5 days). `STALLED_THRESHOLD_DAYS` has been removed
+from `vocabulary.py` as dead code.

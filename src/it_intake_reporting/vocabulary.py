@@ -38,6 +38,3 @@ DEMAND_FUNCTIONS = ["Mfg & Ops", "R&D", "Revenue", "General & Admin"]
 
 # Aging buckets, in days (panel 6).
 AGING_BUCKETS = [(0, 30), (31, 60), (61, 90), (91, None)]
-
-# A review is "stalled" if it has gone this many days with no update (panel 7).
-STALLED_THRESHOLD_DAYS = 7
