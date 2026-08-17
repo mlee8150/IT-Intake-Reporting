@@ -1,16 +1,18 @@
 """Panel 3 (CYCLE TIME: Where time goes / Working hours by team) — sub-task level.
 
-Two separate outputs live on this panel:
+Two separate outputs live on this panel, both derived purely from
+transition-email timestamps — no Jira hours field needed (see
+docs/OPEN_QUESTIONS.md #3, resolved: per the report owner, since we know
+when a sub-task flips to another status, the elapsed time since that flip
+*is* the hours figure):
   - "Where time goes": median days a sub-task has sat in its current status,
-    by team and status. Derivable from transition emails (days since the
-    last transition into that status) — implemented below for real.
-  - "Working hours by team": total effort-hours per team, split into
-    "working" (Not Started + Review In Progress) vs. all statuses. This
-    depends on wherever hours are tracked in Jira (an estimate field?) which
-    is NOT yet identified — see docs/OPEN_QUESTIONS.md. What's implemented
-    here is the aggregation rule itself (confirmed from the template: total
-    minus working = the non-working-hours statuses), which holds regardless
-    of where the raw per-ticket hours number comes from.
+    by team and status.
+  - "Working hours by team": elapsed hours since each open sub-task's latest
+    transition, summed by team — split into "working" (Not Started + Review
+    In Progress) vs. all statuses.
+
+Both take the same `latest_transition_per_subtask` list (one TransitionEvent
+per open sub-task: the transition that put it into its *current* status).
 """
 from __future__ import annotations
 
@@ -19,7 +21,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from ..models import TransitionEvent
-from ..vocabulary import SUBTASK_STATUSES, WORKING_HOURS_STATUSES
+from ..vocabulary import WORKING_HOURS_STATUSES
 
 
 @dataclass(frozen=True)
@@ -60,21 +62,22 @@ class WorkingHoursResult:
     total_hours: float
 
 
-def compute_working_hours(hours_by_team_and_status: dict[str, dict[str, float]]) -> WorkingHoursResult:
-    """`hours_by_team_and_status[team][status]` = summed hours for that
-    team's sub-tasks currently in that status. Source of the per-ticket hours
-    number is TBD (see module docstring); this function only does the rollup.
-    """
-    working_hours_by_team = {
-        team: sum(
-            hours for status, hours in statuses.items() if status in WORKING_HOURS_STATUSES
-        )
-        for team, statuses in hours_by_team_and_status.items()
-    }
-    total_hours_by_team = {
-        team: sum(statuses.get(status, 0.0) for status in SUBTASK_STATUSES)
-        for team, statuses in hours_by_team_and_status.items()
-    }
+def compute_working_hours(
+    latest_transition_per_subtask: list[TransitionEvent], as_of: datetime
+) -> WorkingHoursResult:
+    """Hours = elapsed time since each open sub-task's latest transition
+    (i.e. time already spent in its current status), summed by team."""
+    working_hours_by_team: dict[str, float] = {}
+    total_hours_by_team: dict[str, float] = {}
+    for event in latest_transition_per_subtask:
+        if event.is_parent_request or event.review_team is None:
+            continue
+        hours = (as_of - event.changed_at).total_seconds() / 3600
+        total_hours_by_team[event.review_team] = total_hours_by_team.get(event.review_team, 0.0) + hours
+        if event.to_status in WORKING_HOURS_STATUSES:
+            working_hours_by_team[event.review_team] = (
+                working_hours_by_team.get(event.review_team, 0.0) + hours
+            )
     return WorkingHoursResult(
         working_hours_by_team=working_hours_by_team,
         total_hours_by_team=total_hours_by_team,

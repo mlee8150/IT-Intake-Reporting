@@ -26,7 +26,7 @@ copy .env.example .env
 
 Fill in `.env`:
 - Jira base URL, email, and an [API token](https://id.atlassian.com/manage-profile/security/api-tokens)
-- The 3-4 Jira custom field IDs (see OPEN_QUESTIONS.md #2-3) — not guessable, must be looked up
+- The 3 Jira custom field IDs (see OPEN_QUESTIONS.md #2) — not guessable, must be looked up
 - The shared mailbox's display name as it appears in Outlook's folder pane
 
 Then fill in the real data files (examples provided, gitignored so real data

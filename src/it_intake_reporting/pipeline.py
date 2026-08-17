@@ -80,21 +80,10 @@ def run_weekly_pipeline(
     this_week_closed = backlog.completed
     throughput_trend = compute_throughput_trend(history, week_ending, this_week_opened, this_week_closed)
 
-    # --- Panel 3: where time goes (real) + working hours (needs a source — see OPEN_QUESTIONS.md) ---
+    # --- Panel 3: where time goes + working hours — both from transition timestamps ---
     latest_subtask_transition = _latest_transition_per_ticket(subtask_events)
     where_time_goes = compute_where_time_goes(latest_subtask_transition, as_of=run_datetime)
-    if settings.jira_field_hours:
-        hours_by_team_and_status = _hours_by_team_and_status(
-            subtask_events, jira_client, settings.jira_field_hours
-        )
-    else:
-        warnings.warn(
-            "JIRA_FIELD_HOURS is not set — panel 3's Working Hours table will be all "
-            "zeros. See docs/OPEN_QUESTIONS.md.",
-            stacklevel=2,
-        )
-        hours_by_team_and_status = {}
-    working_hours = compute_working_hours(hours_by_team_and_status)
+    working_hours = compute_working_hours(latest_subtask_transition, as_of=run_datetime)
 
     # --- Panel 4: cycle time trend ---
     completed_pairs = _completed_cycle_time_pairs(parent_events, jira_client)
@@ -188,21 +177,6 @@ def _completed_cycle_time_pairs(
         created = _parse_jira_datetime(issue["fields"]["created"])
         pairs.append((created.date(), event.changed_at.date()))
     return pairs
-
-
-def _hours_by_team_and_status(
-    subtask_events: list[TransitionEvent], jira_client: JiraClient, hours_field: str
-) -> dict[str, dict[str, float]]:
-    result: dict[str, dict[str, float]] = {}
-    latest = _latest_transition_per_ticket(subtask_events)
-    for event in latest:
-        if event.review_team is None:
-            continue
-        issue = jira_client.get_issue(event.ticket_key, fields=[hours_field])
-        hours = issue["fields"].get(hours_field) or 0.0
-        team_bucket = result.setdefault(event.review_team, {})
-        team_bucket[event.to_status] = team_bucket.get(event.to_status, 0.0) + float(hours)
-    return result
 
 
 def _jira_issue_to_request(issue: dict, settings: Settings, mapping: DepartmentMapping) -> JiraRequest:

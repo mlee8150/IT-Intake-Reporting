@@ -74,21 +74,27 @@ need your call:
 `.env` needs three custom field IDs that only exist in your Jira instance:
 
 - `JIRA_FIELD_DEPARTMENT` — the requesting department (panel 5)
-- `JIRA_FIELD_REVIEW_TEAM` — CyberArch / TPRM / Legal / IAM / AI / Sub-ARB (panels 3, 6, 7)
+- `JIRA_FIELD_REVIEW_TEAM` — CyberArch / TPRM / Legal / IAM / AI / Sub-ARB (panel 6 only — panels 3 and 7 get `review_team` from parsed transition emails, not this field)
 - `JIRA_FIELD_EXEC_CRITICAL` — the flag behind the "Exec-critical requests open" headline stat
 
 Find them via Jira Settings > Issues > Custom fields, or `GET /rest/api/3/field`.
 
-## 3. Where "Working Hours" (panel 3) actually comes from
+## 3. Where "Working Hours" (panel 3) actually comes from — RESOLVED
 
-The template shows per-team hour totals (CyberArch 82 hrs, etc.) footnoted as
-"Working Hours = Not Started + Review In Progress." That's a rollup rule
-(implemented in `panels/panel3_review_effort.py::compute_working_hours`), but
-the *source number per sub-task* — is it a time-tracking field, an estimate
-field, or something else — isn't identified yet. If it's a Jira field, set
-`JIRA_FIELD_HOURS`; if it's tracked elsewhere (e.g. entered manually in the
-"previous decks" Excel you mentioned), the pipeline needs a different input
-for it — let's decide once you confirm the source.
+No Jira hours field needed. Per the report owner: since we know when a
+sub-task flips to another status, the elapsed time since that flip *is* the
+hours figure — no separate time-tracking/estimate field to look up.
+
+`compute_working_hours` (`panels/panel3_review_effort.py`) now takes the
+same `latest_transition_per_subtask` list "Where time goes" uses, and sums
+`(as_of - event.changed_at)` in hours per team — split into "working"
+(Not Started + Review In Progress) vs. all statuses, same rollup rule as
+before. `JIRA_FIELD_HOURS` has been removed from `Settings`/`.env.example`
+as dead config.
+
+Inherits the same caveat as #1a: only sees sub-tasks that appear in the
+current run's fetched transition emails, so a sub-task with no activity in
+that window is invisible to this hours total too, not just panel 7.
 
 ## 4. Confirm the workflow status vocabulary
 

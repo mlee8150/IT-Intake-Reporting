@@ -24,7 +24,7 @@ confirmed against the template's own speaker notes and chart data.
 
 | # | Panel | Source | Notes |
 |---|---|---|---|
-| 3 | Where time goes — by review team, working hours (sub-tasks) | Automated transition emails + rolling history workbook | Sub-task level, not parent-request level. "Working Hours" = time in Not Started + Review In Progress states, by review team. |
+| 3 | Where time goes — by review team, working hours (sub-tasks) | Automated transition emails + rolling history workbook | Sub-task level, not parent-request level. Both outputs come from elapsed time since each open sub-task's latest transition — no separate Jira hours field (see OPEN_QUESTIONS.md #3). "Working Hours" = that elapsed time summed over sub-tasks currently in Not Started or Review In Progress, by review team. |
 | 4 | Cycle time trend — median days (last 12 months) | Automated transition emails + rolling history workbook | Parent-request level. 12 months of history won't fit in mailbox retention — the rolling workbook is the source of truth for anything older than the current quarter. |
 
 ## Section: DEMAND & RISK
