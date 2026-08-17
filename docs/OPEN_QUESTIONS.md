@@ -31,32 +31,43 @@ connected to a real mailbox, this is the first place to check — dump a raw
 `.Body` to a `.txt` file and diff it against the shapes in the module
 docstring.
 
-## 1a. Sub-task email scope vs. panel data sources — needs your call
+## 1a. Sub-task email scope vs. panel data sources — RESOLVED
 
-You said sub-task emails are only used for **panels 2, 6, and 7**
-(`panel2_throughput.py`, `panel6_aging.py`, `panel7_stalled.py`). But
-`docs/DATA_SOURCES.md` and the current `pipeline.py` wiring say something
-different:
+Was flagged as a conflict: `docs/DATA_SOURCES.md`/`pipeline.py` had panel 3
+as the only sub-task-driven panel, while the report owner said sub-tasks
+drive panels 2, 6, and 7. Settled against two real reference sheets from the
+actual reporting workbook ("TI Intake" aging sheet and "Reviews Needing
+Follow-up"):
 
-| Panel | `DATA_SOURCES.md` says | `pipeline.py` currently does |
+| Panel | Level | Status |
 |---|---|---|
-| 2 — Throughput trend | Automated transition emails | Derived from `backlog`, which is built from **parent-request** transition emails only (`parent_events`) |
-| 3 — Where time goes / working hours | Automated transition emails, **sub-task level** | Uses `subtask_events` (the only panel currently wired to sub-task emails) |
-| 6 — Aging | Jira dashboard | Uses `active_requests`, a parent-level JQL snapshot — no email data at all |
-| 7 — Stalled | Jira dashboard | Uses `active_requests.updated` — no email data at all |
+| 2 — Throughput trend | Parent-request (unchanged) | Confirmed — no sub-task source exists for this; stays driven by `parent_events` |
+| 3 — Where time goes / working hours | Sub-task (unchanged) | Already correct |
+| 6 — Aging | Parent-request (unchanged) | Confirmed against the "TI Intake" aging sheet (0-30/31-60/61-90/90+ day buckets, no per-sub-task breakdown) |
+| 7 — Stalled | **Sub-task (changed)** | Confirmed against "Reviews Needing Follow-up" — a flat list of individual review sub-tasks with their own status/last-updated/days-since-update. `panel7_stalled.py` and `pipeline.py` have been rewired: `compute_stalled` now takes the same `latest_subtask_transition` list panel 3 uses (one TransitionEvent per open sub-task, its most recent status change), instead of the parent-level Jira snapshot. |
 
-So right now sub-task emails feed panel 3, not 2/6/7, and panels 6/7 don't
-use email data at all. Before I rewire anything, I need to know which is
-actually right:
+This also resolves #6 below — using each sub-task's transition timestamp
+sidesteps the "bot bumps `updated`" risk entirely, since it's driven by an
+actual status change, not a raw field touch.
 
-- Does panel 3 stop being sub-task-driven, and 2/6/7 start being? What
-  should panel 3 use instead?
-- For panels 6 and 7 to be sub-task-driven, they'd need either a JQL that
-  returns active **sub-task** issues (not just parents), or would need to be
-  computed purely from transition-event history instead of a live snapshot —
-  which one matches how you actually want "aging" and "stalled" defined at
-  the sub-task level (age/staleness of the sub-task itself, vs. of its
-  parent request)?
+**New gap this surfaced, still open:** `latest_subtask_transition` is built
+only from transition emails fetched for the current run's ~7-day window
+(see `pipeline._fetch_transition_events`). A sub-task that has been
+genuinely stalled for longer than that — no transition at all in the fetch
+window — won't appear in `subtask_events` and is therefore invisible to
+both panel 3 and (now) panel 7, not merely undercounted. The "Reviews
+Needing Follow-up" sheet, by contrast, appears to reflect *all* currently
+open sub-tasks regardless of when they last moved. Two ways to close this,
+need your call:
+
+- Widen the transition-email fetch window specifically for computing
+  "latest transition per sub-task" (fetch further back than 7 days, keeping
+  only the newest event per ticket) — simplest, but re-processes more email
+  each run as backlog grows.
+- Persist a running "latest known transition per sub-task" store across
+  runs (same idea as the rolling history workbook, but keyed by ticket
+  instead of by week) — more moving parts, but stays cheap per run
+  regardless of how old the oldest stalled ticket gets.
 
 ## 2. Jira custom field IDs
 
@@ -105,9 +116,18 @@ acquisition) already written up. Implementing it and changing one constructor
 call in `cli.py` is the entire migration — nothing in the parser or panels
 needs to change.
 
-## 6. "Stalled" definition (panel 7)
+## 6. "Stalled" definition (panel 7) — RESOLVED, see #1a
 
-`panels/panel7_stalled.py` uses Jira's `updated` timestamp as "last activity."
-If your workflow has automation/bots that bump `updated` without a real
-reviewer touching the ticket, this will undercount stalled reviews. Flag if
-there's a better signal (e.g. last comment, last status change) to use instead.
+Now uses each sub-task's own latest status-transition timestamp instead of
+the parent's raw Jira `updated` field, closing the "bot bumps `updated`"
+risk this item used to flag. The remaining open piece (transition emails
+outside the fetch window making long-stalled tickets invisible) is tracked
+under #1a, not here.
+
+Still unconfirmed: the exact inclusion/threshold rule behind "Reviews
+Needing Follow-up" isn't fully known — its `Days` column included values
+below the 7-day `STALLED_THRESHOLD_DAYS` cutoff currently used in code (e.g.
+5 days), suggesting that sheet may list *all* open sub-tasks with their age
+rather than only ones past a stalled threshold. If panel 7's tile is meant
+to match that sheet's row count exactly, confirm whether 7 days is really
+the right cutoff.

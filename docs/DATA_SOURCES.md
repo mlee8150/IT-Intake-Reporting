@@ -32,8 +32,8 @@ confirmed against the template's own speaker notes and chart data.
 | # | Panel | Source | Notes |
 |---|---|---|---|
 | 5 | Where demand comes from (by function) | Jira dashboard + department→function mapping | Jira gives requesting department; the mapping table rolls that up to G&A / Revenue / R&D / Mfg & Ops etc. |
-| 6 | Aging requests (active), by age bucket | Jira dashboard | 0-30 / 31-60 / 61-90 / >90 days, by review team. |
-| 7 | Stalled reviews (no update in 7+ days) | Jira dashboard | |
+| 6 | Aging requests (active), by age bucket | Jira dashboard | 0-30 / 31-60 / 61-90 / >90 days. **Parent-request level** (confirmed against a real reference sheet — see OPEN_QUESTIONS.md #1a). |
+| 7 | Stalled reviews (no update in 7+ days) | Automated transition emails | **Sub-task level** (confirmed against the real "Reviews Needing Follow-up" reference sheet — see OPEN_QUESTIONS.md #1a). Uses each sub-task's own latest transition timestamp, by review team — not the parent's Jira `updated` field. |
 
 ## Open items needing real data before these are more than scaffolding
 

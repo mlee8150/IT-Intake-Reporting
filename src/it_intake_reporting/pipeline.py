@@ -103,10 +103,12 @@ def run_weekly_pipeline(
         history, week_ending.strftime("%Y-%m"), this_month_median
     )
 
-    # --- Panels 5-7 ---
+    # --- Panels 5-6 ---
     demand_by_function = compute_demand_by_function(active_requests, mapping)
     aging = compute_aging(active_requests, as_of=run_datetime)
-    stalled_by_team = compute_stalled(active_requests, as_of=run_datetime)
+
+    # --- Panel 7: stalled reviews — sub-task level (see docs/OPEN_QUESTIONS.md) ---
+    stalled_by_team = compute_stalled(latest_subtask_transition, as_of=run_datetime)
 
     # --- Headline stats ---
     exec_critical_open = sum(1 for r in active_requests if r.is_exec_critical)
