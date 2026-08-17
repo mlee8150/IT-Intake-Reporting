@@ -17,7 +17,6 @@ class Settings:
     jira_api_token: str
     jira_jql_active_requests: str
     jira_field_department: str
-    jira_field_review_team: str
     jira_field_exec_critical: str
 
     outlook_shared_mailbox_name: str
@@ -50,10 +49,10 @@ def load_settings(env_file: Path | None = None) -> Settings:
             'statusCategory != Done AND issuetype = "Parent Request"',
         ),
         # Custom field ids (e.g. "customfield_10050") — Jira Cloud doesn't
-        # expose department/review-team/exec-critical as standard fields, so
-        # these must be looked up per-instance. See docs/OPEN_QUESTIONS.md.
+        # expose department/exec-critical as standard fields, so these must
+        # be looked up per-instance. See docs/OPEN_QUESTIONS.md. (Review team
+        # is not a Jira field — it's derived from the sub-task's own name.)
         jira_field_department=_require("JIRA_FIELD_DEPARTMENT"),
-        jira_field_review_team=_require("JIRA_FIELD_REVIEW_TEAM"),
         jira_field_exec_critical=_require("JIRA_FIELD_EXEC_CRITICAL"),
         outlook_shared_mailbox_name=_require("OUTLOOK_SHARED_MAILBOX_NAME"),
         outlook_transitions_folder=os.environ.get("OUTLOOK_TRANSITIONS_FOLDER", "Inbox"),

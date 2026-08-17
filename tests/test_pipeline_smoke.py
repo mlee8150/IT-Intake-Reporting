@@ -50,7 +50,6 @@ def _settings(tmp_path: Path) -> Settings:
         jira_api_token="token",
         jira_jql_active_requests="statusCategory != Done",
         jira_field_department="customfield_10001",
-        jira_field_review_team="customfield_10002",
         jira_field_exec_critical="customfield_10003",
         outlook_shared_mailbox_name="IT Intake Notifications",
         outlook_transitions_folder="Inbox/Jira Transitions",
@@ -94,14 +93,13 @@ def test_full_pipeline_produces_a_valid_deck(tmp_path):
     ]
     mailbox_client = FakeMailboxClient(messages)
 
-    def issue(key, department, review_team, exec_critical, status, status_category, created, updated):
+    def issue(key, department, exec_critical, status, status_category, created, updated):
         return {
             "key": key,
             "fields": {
                 "summary": f"{key} summary",
                 "status": {"name": status, "statusCategory": {"name": status_category}},
                 "customfield_10001": department,
-                "customfield_10002": review_team,
                 "customfield_10003": exec_critical,
                 "created": created,
                 "updated": updated,
@@ -109,9 +107,9 @@ def test_full_pipeline_produces_a_valid_deck(tmp_path):
         }
 
     active_issues = [
-        issue("PROJ-101", "Manufacturing", "CyberArch", True, "Review In Progress", "In Progress",
+        issue("PROJ-101", "Manufacturing", True, "Review In Progress", "In Progress",
               "2026-01-05T10:00:00.000+0000", "2026-05-01T10:00:00.000+0000"),
-        issue("PROJ-102", "Sales", "TPRM", False, "Not Started", "To Do",
+        issue("PROJ-102", "Sales", False, "Not Started", "To Do",
               "2026-04-01T10:00:00.000+0000", "2026-05-10T10:00:00.000+0000"),
     ]
     issues_by_key = {

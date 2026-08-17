@@ -54,7 +54,6 @@ def run_weekly_pipeline(
 
     jira_fields = [
         settings.jira_field_department,
-        settings.jira_field_review_team,
         settings.jira_field_exec_critical,
         *JIRA_ISSUE_FIELDS,
     ]
@@ -183,8 +182,6 @@ def _jira_issue_to_request(issue: dict, settings: Settings, mapping: DepartmentM
     fields = issue["fields"]
     department_raw = fields.get(settings.jira_field_department) or ""
     department = department_raw.get("value") if isinstance(department_raw, dict) else department_raw
-    review_team_raw = fields.get(settings.jira_field_review_team)
-    review_team = review_team_raw.get("value") if isinstance(review_team_raw, dict) else review_team_raw
 
     return JiraRequest(
         key=issue["key"],
@@ -192,11 +189,9 @@ def _jira_issue_to_request(issue: dict, settings: Settings, mapping: DepartmentM
         status=fields["status"]["name"],
         status_category=fields["status"]["statusCategory"]["name"],
         department=department or "",
-        review_team=review_team,
         created=_parse_jira_datetime(fields["created"]),
         updated=_parse_jira_datetime(fields["updated"]),
         is_exec_critical=bool(fields.get(settings.jira_field_exec_critical)),
-        raw_fields=fields,
     )
 
 

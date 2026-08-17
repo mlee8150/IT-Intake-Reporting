@@ -24,21 +24,21 @@ class TransitionEvent:
 
 @dataclass(frozen=True)
 class JiraRequest:
-    """One parent request as currently reflected in Jira (a dashboard snapshot row)."""
+    """One parent request as currently reflected in Jira (a dashboard snapshot row).
+
+    No review_team here — parent requests can have multiple review sub-tasks,
+    each with its own team (see TransitionEvent.review_team, derived from the
+    sub-task's own name), so a single team doesn't apply at the parent level.
+    """
 
     key: str
     summary: str
     status: str
     status_category: str
     department: str
-    review_team: str | None
     created: datetime
     updated: datetime
     is_exec_critical: bool
-    # Full raw Jira `fields` payload, for reaching custom fields (e.g. an
-    # hours-estimate field for panel 3) whose field id isn't known yet — see
-    # docs/OPEN_QUESTIONS.md.
-    raw_fields: dict | None = None
 
 
 @dataclass(frozen=True)

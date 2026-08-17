@@ -69,15 +69,27 @@ need your call:
   instead of by week) — more moving parts, but stays cheap per run
   regardless of how old the oldest stalled ticket gets.
 
-## 2. Jira custom field IDs
+## 2. Jira custom field IDs — RESOLVED down to two
 
-`.env` needs three custom field IDs that only exist in your Jira instance:
+`.env` needs two custom field IDs that only exist in your Jira instance:
 
 - `JIRA_FIELD_DEPARTMENT` — the requesting department (panel 5)
-- `JIRA_FIELD_REVIEW_TEAM` — CyberArch / TPRM / Legal / IAM / AI / Sub-ARB (panel 6 only — panels 3 and 7 get `review_team` from parsed transition emails, not this field)
 - `JIRA_FIELD_EXEC_CRITICAL` — the flag behind the "Exec-critical requests open" headline stat
 
 Find them via Jira Settings > Issues > Custom fields, or `GET /rest/api/3/field`.
+
+There is no `JIRA_FIELD_REVIEW_TEAM` — per the report owner, review team
+isn't a Jira field at all, it's embedded in the sub-task's own name (e.g.
+"Legal review Sub-task"), which `transition_parser.py` already extracts for
+panels 3 and 7. It turned out panel 6 didn't need a team dimension either —
+`AgingResult.by_team_and_bucket` was computed but never actually read by the
+deck (only `total_by_bucket`), so it, `JiraRequest.review_team`, and the
+now-pointless `JiraRequest.raw_fields` escape hatch have all been removed.
+
+The six real team names, for reference: **CyberArch, AI, Legal, IAM,
+Sub-ARB, TPRM** — matches `vocabulary.REVIEW_TEAMS`. Real sub-task titles
+spell these inconsistently (see `transition_parser.py`'s `_TEAM_ALIASES`),
+which the parser now tolerates.
 
 ## 3. Where "Working Hours" (panel 3) actually comes from — RESOLVED
 
