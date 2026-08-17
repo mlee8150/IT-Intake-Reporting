@@ -98,6 +98,26 @@ def test_commented_and_changed_status_digest():
     assert event.changed_at == RECEIVED_AT
 
 
+@pytest.mark.parametrize(
+    ("subject", "expected_team"),
+    [
+        ("[JIRA] (TI-207) CyberArch Sub-Task: (Octopus) - IT", "CyberArch"),
+        ("[JIRA] (TI-144) CyberArk Review Sub-Task: Articulate - IT", "CyberArch"),
+        ("[JIRA] (TI-194) CyberArchitecture Review Sub-Task:", "CyberArch"),
+        ("[JIRA] (TI-181) Cyber Arch Review Sub-Task: Anthropic Claude -", "CyberArch"),
+        ("[JIRA] (TI-143) CyberArch Review SubTask: Serval - IT", "CyberArch"),
+        ("[JIRA] (TI-213) SubARB Review Sub Task: POC Supply Chain", "Sub-ARB"),
+    ],
+)
+def test_recognizes_real_world_team_spelling_variants(subject, expected_team):
+    message = _msg(subject, "Status: Open -> Review In Progress")
+
+    events = parse_transition_email(message)
+
+    assert events[0].is_parent_request is False
+    assert events[0].review_team == expected_team
+
+
 def test_raises_when_no_ticket_key_found():
     message = _msg("no key here", "Status: Open")
     with pytest.raises(ValueError, match="ticket key"):

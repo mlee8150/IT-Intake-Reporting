@@ -49,6 +49,15 @@ least) on completion:
 Neither shape has a labeled "Team:" field (unlike the old guessed format);
 the review team appears next to the word "Sub-task" instead (e.g. "Legal
 review Sub-task", "IAM Review Sub-task"), or in the "Work type" field.
+
+Real ticket titles (from a reference "Reviews Needing Follow-up" sheet, not
+an email itself, but presumably reflecting the same source text) show
+inconsistent spelling for both the word "Sub-task" and for "CyberArch" and
+"Sub-ARB" specifically: "SubTask" (no hyphen), "Sub Task" (space), "CyberArk"
+(typo), "CyberArchitecture", "Cyber Arch" (space), "SubARB" (no hyphen).
+`_SUBTASK_MARKER_RE` and `_TEAM_ALIASES` below normalize these — treat that
+alias list as provisional, not exhaustive; add to it as new spelling
+variants turn up in real data rather than assuming this is the complete set.
 """
 from __future__ import annotations
 
@@ -77,11 +86,29 @@ _CHANGED_STATUS_SENTENCE_RE = re.compile(
     r"(?P<to>[^.\n]+?)\.?\s*$",
     re.IGNORECASE,
 )
+# "Sub-task", "SubTask", "Sub Task" — hyphen, no separator, or a space.
+_SUBTASK_MARKER = r"sub[\s-]?task"
+_SUBTASK_MARKER_RE = re.compile(_SUBTASK_MARKER, re.IGNORECASE)
+
+# Known real-world spelling variants for review-team names, mapped to the
+# canonical spelling in vocabulary.REVIEW_TEAMS. Provisional — extend as new
+# variants show up (see module docstring).
+_TEAM_ALIASES: dict[str, str] = {t.lower(): t for t in REVIEW_TEAMS}
+_TEAM_ALIASES.update(
+    {
+        "cyberark": "CyberArch",
+        "cyberarchitecture": "CyberArch",
+        "cyber arch": "CyberArch",
+        "subarb": "Sub-ARB",
+        "sub arb": "Sub-ARB",
+    }
+)
+_TEAM_BY_LOWER = _TEAM_ALIASES
+
 _SUBTASK_TEAM_RE = re.compile(
-    r"\b(" + "|".join(re.escape(t) for t in REVIEW_TEAMS) + r")\b.{0,20}?sub-task",
+    r"\b(" + "|".join(re.escape(t) for t in _TEAM_ALIASES) + r")\b.{0,20}?" + _SUBTASK_MARKER,
     re.IGNORECASE,
 )
-_TEAM_BY_LOWER = {t.lower(): t for t in REVIEW_TEAMS}
 
 
 def parse_transition_email(message: RawMessage) -> list[TransitionEvent]:
@@ -102,7 +129,7 @@ def parse_transition_email(message: RawMessage) -> list[TransitionEvent]:
         )
     ticket_key = key_match.group(1)
 
-    is_parent = "sub-task" not in haystack.lower()
+    is_parent = not _SUBTASK_MARKER_RE.search(haystack)
     review_team = _find_review_team(haystack, body)
 
     events: list[TransitionEvent] = []
