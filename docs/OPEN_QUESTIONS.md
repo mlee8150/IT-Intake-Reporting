@@ -104,6 +104,17 @@ statuses in `panel1_backlog.py::STATUS_TO_BUCKET` ("Completed", "Not Approved",
 "Cancelled", "On Hold"). If your real workflow uses different status labels,
 these need updating — they're deliberately centralized so that's a one-file change.
 
+**Demand functions (panel 5) — RESOLVED.** Confirmed real from "Appendix B —
+Department to Function Mapping": the 22 real Requesting Department dropdown
+values roll up to 5 functions — G&A, Manufacturing & Operations, R&D,
+Revenue, Others (not the 4 guessed functions previously in
+`DEMAND_FUNCTIONS`, and "Others" wasn't in the guess at all).
+`config/department_mapping.example.csv` now has the real 22 rows;
+`vocabulary.DEMAND_FUNCTIONS` updated to match. Copy that file to
+`config/department_mapping.csv` (gitignored) to use it for real —
+`department_mapping.py` will raise a clear error on any request whose real
+Jira department value isn't one of these 22.
+
 The two real sub-task emails (see #1) showed **Open, Review In Progress,
 Awaiting Requestor Response, Completed** — none of which exactly match
 `SUBTASK_STATUSES` in `vocabulary.py` ("Not Started", "On Hold", "Review In

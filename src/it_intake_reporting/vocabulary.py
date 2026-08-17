@@ -1,10 +1,11 @@
 """
-Domain vocabulary taken from the deck template itself (review teams, sub-task
-statuses, balance-bridge event types, demand-source functions).
+Domain vocabulary: review teams, sub-task statuses, balance-bridge event
+types, demand-source functions, aging buckets.
 
-These are the values that appeared in the template's own chart data, used here
-as defaults. They almost certainly need to be reconciled against the real
-Jira instance's actual status/team/component names — see docs/OPEN_QUESTIONS.md.
+DEMAND_FUNCTIONS is confirmed real (see below). Everything else here still
+comes from the deck template's own sample chart data, used as a default —
+still needs reconciling against the real Jira instance's actual
+status/team/component names. See docs/OPEN_QUESTIONS.md.
 """
 from __future__ import annotations
 
@@ -34,7 +35,9 @@ BALANCE_BRIDGE_EVENTS = [
 ]
 
 # Demand-source functions after rolling department -> function (panel 5).
-DEMAND_FUNCTIONS = ["Mfg & Ops", "R&D", "Revenue", "General & Admin"]
+# Confirmed real (Appendix B, "Department to Function Mapping" — the 22 real
+# Requesting Department dropdown values roll up to these 5).
+DEMAND_FUNCTIONS = ["G&A", "Manufacturing & Operations", "R&D", "Revenue", "Others"]
 
 # Aging buckets, in days (panel 6).
 AGING_BUCKETS = [(0, 30), (31, 60), (61, 90), (91, None)]

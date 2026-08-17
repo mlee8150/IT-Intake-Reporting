@@ -1,14 +1,23 @@
 department,function
-Manufacturing,Mfg & Ops
-Operations,Mfg & Ops
-Supply Chain,Mfg & Ops
-Engineering,R&D
-Product Development,R&D
-Research,R&D
-Sales,Revenue
-Marketing,Revenue
-Customer Success,Revenue
-Finance,General & Admin
-Legal,General & Admin
-Human Resources,General & Admin
-IT,General & Admin
+General & Administrative - AI,G&A
+General & Administrative - Finance,G&A
+General & Administrative - Communications,G&A
+General & Administrative - Cost Transformation,G&A
+General & Administrative - External Affairs,G&A
+General & Administrative - IT,G&A
+General & Administrative - Legal,G&A
+General & Administrative - People,G&A
+Manufacturing & Operations - Logistics,Manufacturing & Operations
+Manufacturing & Operations - Manufacturing,Manufacturing & Operations
+Manufacturing & Operations - Quality,Manufacturing & Operations
+Manufacturing & Operations - Supply Chain,Manufacturing & Operations
+Research & Development - ADAS & Autonomous Vehicles,R&D
+Research & Development - Design,R&D
+Research & Development - Engineering & Software,R&D
+Research & Development - Program Management,R&D
+Revenue - Financial Services,Revenue
+Revenue - Marketing,Revenue
+Revenue - Owner Experience,Revenue
+Revenue - Sales,Revenue
+Revenue - Strategy & Business Dev,Revenue
+Others,Others
