@@ -5,6 +5,7 @@ venv/
 .env
 output/
 config/rolling_history.xlsx
+config/subtask_transitions.xlsx
 config/department_mapping.csv
 *.log
 .pytest_cache/

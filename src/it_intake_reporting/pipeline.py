@@ -14,6 +14,7 @@ from pathlib import Path
 from .config import Settings
 from .deck.template_filler import ChartUpdate, DeckValues, fill_deck
 from .history.rolling_workbook import RollingHistoryWorkbook
+from .history.subtask_transition_store import SubtaskTransitionStore
 from .jira_client import JiraClient
 from .mailbox.base import MailboxClient
 from .mailbox.transition_parser import parse_transition_email
@@ -27,7 +28,7 @@ from .panels.panel4_cycle_time import compute_cycle_time_trend, median_cycle_tim
 from .panels.panel5_demand import compute_demand_by_function
 from .panels.panel6_aging import compute_aging
 from .panels.panel7_stalled import compute_stalled
-from .vocabulary import REVIEW_TEAMS, SUBTASK_STATUSES
+from .vocabulary import REVIEW_TEAMS, SUBTASK_STATUSES, SUBTASK_TERMINAL_STATUSES
 
 JIRA_ISSUE_FIELDS = ["status", "statuscategory", "created", "updated", "components"]
 
@@ -88,7 +89,18 @@ def run_weekly_pipeline(
     throughput_trend = compute_throughput_trend(history, week_ending, this_week_opened, this_week_closed)
 
     # --- Panel 3: where time goes + working hours — both from transition timestamps ---
-    latest_subtask_transition = _latest_transition_per_ticket(subtask_events)
+    # This run's transitions merge into our own persisted store (see
+    # SubtaskTransitionStore's docstring) so a sub-task with zero activity
+    # in this run's mailbox fetch window still shows up here, as long as it
+    # showed up in some earlier run's fetch. Terminal sub-tasks (Completed)
+    # are excluded — otherwise they'd sit in the store forever once persisted.
+    subtask_store = SubtaskTransitionStore(settings.subtask_transition_store_xlsx)
+    all_known_subtask_transitions = subtask_store.merge_and_save(
+        _latest_transition_per_ticket(subtask_events)
+    )
+    latest_subtask_transition = [
+        e for e in all_known_subtask_transitions if e.to_status not in SUBTASK_TERMINAL_STATUSES
+    ]
     where_time_goes = compute_where_time_goes(latest_subtask_transition, as_of=run_datetime)
     working_hours = compute_working_hours(latest_subtask_transition, as_of=run_datetime)
 

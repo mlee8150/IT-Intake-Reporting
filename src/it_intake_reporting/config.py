@@ -25,6 +25,7 @@ class Settings:
 
     department_mapping_csv: Path
     rolling_history_xlsx: Path
+    subtask_transition_store_xlsx: Path
     deck_template_pptx: Path
     deck_output_dir: Path
 
@@ -68,6 +69,8 @@ def load_settings(env_file: Path | None = None) -> Settings:
         / os.environ.get("DEPARTMENT_MAPPING_CSV", "config/department_mapping.csv"),
         rolling_history_xlsx=REPO_ROOT
         / os.environ.get("ROLLING_HISTORY_XLSX", "config/rolling_history.xlsx"),
+        subtask_transition_store_xlsx=REPO_ROOT
+        / os.environ.get("SUBTASK_TRANSITION_STORE_XLSX", "config/subtask_transitions.xlsx"),
         deck_template_pptx=REPO_ROOT
         / os.environ.get(
             "DECK_TEMPLATE_PPTX", "templates/Technology_Intake_Weekly_Exec_Summary.pptx"

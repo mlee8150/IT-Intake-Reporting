@@ -56,6 +56,7 @@ def _settings(tmp_path: Path) -> Settings:
         outlook_transitions_folder="Inbox/Jira Transitions",
         department_mapping_csv=mapping_csv,
         rolling_history_xlsx=tmp_path / "rolling_history.xlsx",
+        subtask_transition_store_xlsx=tmp_path / "subtask_transitions.xlsx",
         deck_template_pptx=REPO_ROOT / "templates" / "Technology_Intake_Weekly_Exec_Summary.pptx",
         deck_output_dir=tmp_path / "output",
     )

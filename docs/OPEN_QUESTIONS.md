@@ -50,24 +50,24 @@ This also resolves #6 below — using each sub-task's transition timestamp
 sidesteps the "bot bumps `updated`" risk entirely, since it's driven by an
 actual status change, not a raw field touch.
 
-**New gap this surfaced, still open:** `latest_subtask_transition` is built
-only from transition emails fetched for the current run's ~7-day window
-(see `pipeline._fetch_transition_events`). A sub-task that has been
-genuinely stalled for longer than that — no transition at all in the fetch
-window — won't appear in `subtask_events` and is therefore invisible to
-both panel 3 and (now) panel 7, not merely undercounted. The "Reviews
-Needing Follow-up" sheet, by contrast, appears to reflect *all* currently
-open sub-tasks regardless of when they last moved. Two ways to close this,
-need your call:
+**Gap this surfaced — RESOLVED.** `latest_subtask_transition` was built only
+from transition emails fetched for the current run's ~7-day window, so a
+sub-task stalled longer than that (no transition at all in the fetch
+window) was invisible to panels 3 and 7, not merely undercounted. Per the
+report owner, panels 3/7 stay Outlook-sourced (not Excel, unlike the
+parent-level panels — see #7), so this needed our own persisted record
+rather than a wider live query.
 
-- Widen the transition-email fetch window specifically for computing
-  "latest transition per sub-task" (fetch further back than 7 days, keeping
-  only the newest event per ticket) — simplest, but re-processes more email
-  each run as backlog grows.
-- Persist a running "latest known transition per sub-task" store across
-  runs (same idea as the rolling history workbook, but keyed by ticket
-  instead of by week) — more moving parts, but stays cheap per run
-  regardless of how old the oldest stalled ticket gets.
+Fixed via `history/subtask_transition_store.py`
+(`SubtaskTransitionStore`, backed by `config/subtask_transitions.xlsx`,
+gitignored): each run merges this run's freshly-fetched transitions into
+whatever the store already knows (newest `changed_at` per ticket wins) and
+persists the result, so a sub-task keeps showing up run after run through
+weeks of zero activity — until it actually moves again, or its latest
+status is terminal (`vocabulary.SUBTASK_TERMINAL_STATUSES`, currently just
+`{"Completed"}` — provisional, same caveat as #4's status-vocabulary gap:
+extend it once the full sub-task status set is known, or a genuinely-closed
+sub-task would sit in "Where time goes"/"Working Hours"/"Stalled" forever).
 
 ## 1b. Panel 5 population — lifetime, not active-only (decided, revisit later)
 
@@ -177,3 +177,29 @@ the pipeline currently knows about, by team, matching whatever the data
 shows (the same shape as the "Reviews Needing Follow-up" sheet, which
 included rows as young as 5 days). `STALLED_THRESHOLD_DAYS` has been removed
 from `vocabulary.py` as dead code.
+
+## 7. MVP data-sourcing split — decided, not yet built for the parent-level side
+
+The report owner confirmed the intended architecture:
+
+- **Long-term**: everything live — real Jira REST API queries, real Outlook
+  mailbox parsing. `jira_client/` and `mailbox/outlook_com.py` (already
+  built this whole project against) are that end state.
+- **MVP, for now**: sub-task data (panels 3 and 7) stays Outlook-sourced,
+  persisted into our own file (`SubtaskTransitionStore`, done — see #1a).
+  Everything **parent-level** (panels 1, 2, 4, 5, 6, and the two
+  Panel-1-derived headline stats) is sourced from **manually-refreshed
+  Excel exports** instead of live Jira `search_issues`/`get_issue` calls —
+  separate files per data point (not one combined workbook), refreshed
+  manually before each run for now.
+
+**Not yet built**: the actual Excel-reading layer for the parent-level
+panels. We have real reference shapes for several of these already (from
+screenshots reviewed this session — the "TI Intake" aging sheet, "Ticket
+Cycle Time," "Request Volume by Department," "Active Parent Ticket
+Status"), but no code reads them yet; `pipeline.py` still calls
+`jira_client.search_issues(...)` for `active_requests` and
+`lifetime_requests`. Next step: design one reader per shape (mirroring how
+`DepartmentMapping.from_csv` already reads a plain CSV) and swap
+`pipeline.py`'s Jira calls for those readers — the same kind of clean swap
+the Graph API migration (#5) is set up for, just Excel instead of Graph.

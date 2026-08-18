@@ -25,7 +25,7 @@ the real backends (Outlook COM, live Jira) and calls `pipeline.run_weekly_pipeli
 | `mailbox/` | `base.py` defines the `MailboxClient` interface; `outlook_com.py` is the real (Windows/Outlook) implementation; `graph.py` is a documented stub for the future Graph backend; `transition_parser.py` turns one raw email into a `TransitionEvent`. |
 | `jira_client/` | Thin wrapper over the Jira Cloud REST API v3 (`/rest/api/3/search/jql`, token-paginated). |
 | `mapping/` | Loads the department -> function CSV for panel 5. |
-| `history/` | `RollingHistoryWorkbook` — one Excel row per week, backing the trend panels (2, 4) and headline deltas beyond what a single run's live data covers. |
+| `history/` | `RollingHistoryWorkbook` — one Excel row per week, backing the trend panels (2, 4) and headline deltas beyond what a single run's live data covers. `SubtaskTransitionStore` — our own persisted record of each open sub-task's latest known transition, so panels 3/7 don't lose a sub-task that had zero activity in one run's mailbox fetch window. See docs/OPEN_QUESTIONS.md #1a. |
 | `panels/` | One module per template panel (see docs/DATA_SOURCES.md), each a pure function: typed inputs in, a typed result out. No I/O. |
 | `deck/template_filler.py` | Maps logical field names to the template's actual shape names and writes values/chart data into a copy of the template. |
 | `pipeline.py` | Orchestrates: fetch -> compute -> persist history -> fill deck. |

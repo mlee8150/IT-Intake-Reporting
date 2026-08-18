@@ -24,6 +24,14 @@ SUBTASK_STATUSES = [
 ]
 WORKING_HOURS_STATUSES = {"Not Started", "Review In Progress"}
 
+# Sub-task statuses that mean "done, no longer an open review" — excluded
+# from panels 3 and 7 once the persisted subtask transition store means a
+# completed sub-task doesn't just age out of the current run's email fetch.
+# Only "Completed" is confirmed real so far (see the two real sub-task
+# emails in transition_parser.py); provisional, extend once the full
+# sub-task status set is known — see docs/OPEN_QUESTIONS.md #4.
+SUBTASK_TERMINAL_STATUSES = {"Completed"}
+
 # Parent-request balance-bridge event types (panel 1: opening -> closing balance).
 BALANCE_BRIDGE_EVENTS = [
     "newly_opened",
