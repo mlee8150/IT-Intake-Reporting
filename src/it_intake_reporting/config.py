@@ -19,7 +19,6 @@ class Settings:
     jira_field_department: str
     jira_field_review_team: str
     jira_field_exec_critical: str
-    jira_field_hours: str | None
 
     outlook_shared_mailbox_name: str
     outlook_transitions_folder: str
@@ -56,7 +55,6 @@ def load_settings(env_file: Path | None = None) -> Settings:
         jira_field_department=_require("JIRA_FIELD_DEPARTMENT"),
         jira_field_review_team=_require("JIRA_FIELD_REVIEW_TEAM"),
         jira_field_exec_critical=_require("JIRA_FIELD_EXEC_CRITICAL"),
-        jira_field_hours=os.environ.get("JIRA_FIELD_HOURS") or None,
         outlook_shared_mailbox_name=_require("OUTLOOK_SHARED_MAILBOX_NAME"),
         outlook_transitions_folder=os.environ.get("OUTLOOK_TRANSITIONS_FOLDER", "Inbox"),
         department_mapping_csv=REPO_ROOT

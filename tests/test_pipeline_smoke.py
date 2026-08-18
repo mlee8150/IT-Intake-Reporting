@@ -52,7 +52,6 @@ def _settings(tmp_path: Path) -> Settings:
         jira_field_department="customfield_10001",
         jira_field_review_team="customfield_10002",
         jira_field_exec_critical="customfield_10003",
-        jira_field_hours="customfield_10004",
         outlook_shared_mailbox_name="IT Intake Notifications",
         outlook_transitions_folder="Inbox/Jira Transitions",
         department_mapping_csv=mapping_csv,
@@ -104,7 +103,6 @@ def test_full_pipeline_produces_a_valid_deck(tmp_path):
                 "customfield_10001": department,
                 "customfield_10002": review_team,
                 "customfield_10003": exec_critical,
-                "customfield_10004": 12.5,
                 "created": created,
                 "updated": updated,
             },
@@ -118,8 +116,6 @@ def test_full_pipeline_produces_a_valid_deck(tmp_path):
     ]
     issues_by_key = {
         "PROJ-202": {"fields": {"created": "2026-04-10T09:00:00.000+0000"}},
-        "PROJ-301": {"fields": {"customfield_10004": 20.0}},
-        "PROJ-302": {"fields": {"customfield_10004": 15.0}},
     }
     jira_client = FakeJiraClient(active_issues, issues_by_key)
 

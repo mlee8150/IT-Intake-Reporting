@@ -1,16 +1,11 @@
 """Panel 3 (CYCLE TIME: Where time goes / Working hours by team) — sub-task level.
 
-Two separate outputs live on this panel:
-  - "Where time goes": median days a sub-task has sat in its current status,
-    by team and status. Derivable from transition emails (days since the
-    last transition into that status) — implemented below for real.
-  - "Working hours by team": total effort-hours per team, split into
-    "working" (Not Started + Review In Progress) vs. all statuses. This
-    depends on wherever hours are tracked in Jira (an estimate field?) which
-    is NOT yet identified — see docs/OPEN_QUESTIONS.md. What's implemented
-    here is the aggregation rule itself (confirmed from the template: total
-    minus working = the non-working-hours statuses), which holds regardless
-    of where the raw per-ticket hours number comes from.
+Both outputs on this panel come from ONE table: per team, per sub-task
+status (see vocabulary.SUBTASK_STATUSES). `compute_where_time_goes` builds
+that table from transition emails (median days since the last transition
+into each status); `compute_working_hours` is a pure rollup of that same
+table — confirmed by the user: "Working hours" = Not Started + Review In
+Progress summed per team, no separate Jira field involved.
 """
 from __future__ import annotations
 
@@ -61,10 +56,8 @@ class WorkingHoursResult:
 
 
 def compute_working_hours(hours_by_team_and_status: dict[str, dict[str, float]]) -> WorkingHoursResult:
-    """`hours_by_team_and_status[team][status]` = summed hours for that
-    team's sub-tasks currently in that status. Source of the per-ticket hours
-    number is TBD (see module docstring); this function only does the rollup.
-    """
+    """`hours_by_team_and_status[team][status]` — in practice, pass in
+    `WhereTimeGoesResult.median_days` directly (see module docstring)."""
     working_hours_by_team = {
         team: sum(
             hours for status, hours in statuses.items() if status in WORKING_HOURS_STATUSES

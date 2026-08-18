@@ -35,16 +35,17 @@ to match exactly, not patched around.
 
 Find them via Jira Settings > Issues > Custom fields, or `GET /rest/api/3/field`.
 
-## 3. Where "Working Hours" (panel 3) actually comes from
+## 3. ~~Where "Working Hours" (panel 3) actually comes from~~ — resolved
 
-The template shows per-team hour totals (CyberArch 82 hrs, etc.) footnoted as
-"Working Hours = Not Started + Review In Progress." That's a rollup rule
-(implemented in `panels/panel3_review_effort.py::compute_working_hours`), but
-the *source number per sub-task* — is it a time-tracking field, an estimate
-field, or something else — isn't identified yet. If it's a Jira field, set
-`JIRA_FIELD_HOURS`; if it's tracked elsewhere (e.g. entered manually in the
-"previous decks" Excel you mentioned), the pipeline needs a different input
-for it — let's decide once you confirm the source.
+Confirmed: it's not a separate Jira field. "Working Hours" per team = Not
+Started + Review In Progress, summed from the same per-team/status table
+that feeds the "Where time goes" bar chart (`panels/panel3_review_effort.py`,
+`pipeline.py`'s panel 3 section). One remaining loose end: that shared table
+is currently built from transition-email timestamps as *median days* a
+sub-task has sat in a status (`compute_where_time_goes`) — worth confirming
+with a real sample whether the actual Jira source for this table reports
+hours directly (e.g. a dashboard gadget) rather than days, since the panel 3
+numbers are labeled "hrs" in the template.
 
 ## 4. Confirm the workflow status vocabulary
 
