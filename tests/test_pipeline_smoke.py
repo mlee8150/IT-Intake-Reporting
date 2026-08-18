@@ -49,6 +49,7 @@ def _settings(tmp_path: Path) -> Settings:
         jira_email="bot@example.com",
         jira_api_token="token",
         jira_jql_active_requests="statusCategory != Done",
+        jira_jql_lifetime_requests="issuetype = \"Parent Request\"",
         jira_field_department="customfield_10001",
         jira_field_exec_critical="customfield_10003",
         outlook_shared_mailbox_name="IT Intake Notifications",

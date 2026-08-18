@@ -1,6 +1,13 @@
-"""Panel 5 (DEMAND & RISK: Where demand comes from) — active parent requests
-by requesting function, rolled up from Jira's department field via the
-department -> function mapping.
+"""Panel 5 (DEMAND & RISK: Where demand comes from) — lifetime parent request
+volume by requesting function, rolled up from Jira's department field via
+the department -> function mapping.
+
+Deliberately lifetime, not active-only: `requests` here is expected to be
+every parent request ever created (any status), not the same active-only
+population panels 1 and 6 use — see pipeline.py's `lifetime_requests` and
+docs/OPEN_QUESTIONS.md. The report owner may want this switched to
+active-only later; if so, this function doesn't change, just which request
+list pipeline.py passes in.
 """
 from __future__ import annotations
 

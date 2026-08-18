@@ -61,6 +61,14 @@ def run_weekly_pipeline(
         _jira_issue_to_request(issue, settings, mapping)
         for issue in jira_client.search_issues(settings.jira_jql_active_requests, fields=jira_fields)
     ]
+    # Panel 5 counts lifetime request volume, not just active ones — a
+    # deliberately separate population from active_requests above. See
+    # docs/OPEN_QUESTIONS.md for why, and the note about maybe switching
+    # this back to active-only later.
+    lifetime_requests = [
+        _jira_issue_to_request(issue, settings, mapping)
+        for issue in jira_client.search_issues(settings.jira_jql_lifetime_requests, fields=jira_fields)
+    ]
 
     # --- Panel 1: backlog bridge ---
     opening_balance = previous_week.open_requests_active if previous_week else len(active_requests)
@@ -91,8 +99,10 @@ def run_weekly_pipeline(
         history, week_ending.strftime("%Y-%m"), this_month_median
     )
 
-    # --- Panels 5-6 ---
-    demand_by_function = compute_demand_by_function(active_requests, mapping)
+    # --- Panel 5: demand by function (lifetime) ---
+    demand_by_function = compute_demand_by_function(lifetime_requests, mapping)
+
+    # --- Panel 6: aging (active only) ---
     aging = compute_aging(active_requests, as_of=run_datetime)
 
     # --- Panel 7: stalled reviews — sub-task level (see docs/OPEN_QUESTIONS.md) ---

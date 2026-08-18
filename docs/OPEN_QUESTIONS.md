@@ -69,6 +69,24 @@ need your call:
   instead of by week) — more moving parts, but stays cheap per run
   regardless of how old the oldest stalled ticket gets.
 
+## 1b. Panel 5 population — lifetime, not active-only (decided, revisit later)
+
+Panel 5 ("Where demand comes from") counts *lifetime* parent-request volume
+(every request ever created, any status), not the active-only population
+panels 1 and 6 use — a deliberate choice by the report owner, made when
+reconciling against the real "Request Volume by Department" reference sheet
+(which includes Completed/Cancelled/Not Approved/etc. rows, not just open
+ones). `pipeline.py` fetches this as a second, separate Jira query
+(`jira_jql_lifetime_requests` / `JIRA_JQL_LIFETIME_REQUESTS`, no
+`statusCategory` filter) — `active_requests` (used by panels 1 and 6, and
+the exec-critical headline stat) is untouched.
+
+**Flagged for a possible future revisit:** the report owner may want this
+switched to active-only later, to show current demand pressure rather than
+historical volume. If so, `panel5_demand.py::compute_demand_by_function`
+itself doesn't need to change — just point `pipeline.py` at `active_requests`
+instead of `lifetime_requests`.
+
 ## 2. Jira custom field IDs — RESOLVED down to two
 
 `.env` needs two custom field IDs that only exist in your Jira instance:

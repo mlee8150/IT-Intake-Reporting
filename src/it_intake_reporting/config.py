@@ -16,6 +16,7 @@ class Settings:
     jira_email: str
     jira_api_token: str
     jira_jql_active_requests: str
+    jira_jql_lifetime_requests: str
     jira_field_department: str
     jira_field_exec_critical: str
 
@@ -47,6 +48,13 @@ def load_settings(env_file: Path | None = None) -> Settings:
         jira_jql_active_requests=os.environ.get(
             "JIRA_JQL_ACTIVE_REQUESTS",
             'statusCategory != Done AND issuetype = "Parent Request"',
+        ),
+        # Panel 5 counts lifetime request volume, not just currently-active
+        # ones (see docs/OPEN_QUESTIONS.md) — deliberately a separate query
+        # from JIRA_JQL_ACTIVE_REQUESTS, with no statusCategory filter.
+        jira_jql_lifetime_requests=os.environ.get(
+            "JIRA_JQL_LIFETIME_REQUESTS",
+            'issuetype = "Parent Request"',
         ),
         # Custom field ids (e.g. "customfield_10050") — Jira Cloud doesn't
         # expose department/exec-critical as standard fields, so these must

@@ -31,7 +31,7 @@ confirmed against the template's own speaker notes and chart data.
 
 | # | Panel | Source | Notes |
 |---|---|---|---|
-| 5 | Where demand comes from (by function) | Jira dashboard + department→function mapping | Jira gives requesting department; the mapping table rolls that up to G&A / Manufacturing & Operations / R&D / Revenue / Others. **Mapping confirmed real** — see `config/department_mapping.example.csv` (the real 22 dropdown values, from Appendix B of the report owner's reference doc) and OPEN_QUESTIONS.md #4. |
+| 5 | Where demand comes from (by function) | Jira dashboard (**lifetime**, `JIRA_JQL_LIFETIME_REQUESTS`) + department→function mapping | Deliberately *lifetime* request volume, not active-only — a separate query from panels 1/6's active population (see OPEN_QUESTIONS.md #1b). Jira gives requesting department; the mapping table rolls that up to G&A / Manufacturing & Operations / R&D / Revenue / Others. **Mapping confirmed real** — see `config/department_mapping.example.csv` (the real 22 dropdown values, from Appendix B of the report owner's reference doc) and OPEN_QUESTIONS.md #4. |
 | 6 | Aging requests (active), by age bucket | Jira dashboard | 0-30 / 31-60 / 61-90 / >90 days. **Parent-request level** (confirmed against a real reference sheet — see OPEN_QUESTIONS.md #1a). |
 | 7 | Stalled reviews (open review sub-tasks), by team | Automated transition emails | **Sub-task level** (confirmed against the real "Reviews Needing Follow-up" reference sheet — see OPEN_QUESTIONS.md #1a). Counts every currently-tracked open sub-task per review team, from each sub-task's latest transition — no day-count threshold; matches whatever the data shows, per the report owner. |
 
